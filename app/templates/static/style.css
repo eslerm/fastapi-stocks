@@ -1,0 +1,9 @@
+html { background-color: #c9e7ff; }
+body { margin: 0 auto; max-width: 50em; padding: 1em; }
+header { text-align: center; margin: 0.5em 0; font-family:sans-serif; overflow:auto; }
+a { text-decoration:none; }
+h1 a { font-size: 4rem; }
+h2 { font-size: 1.5rem; font-weight: 300; }
+p { margin: 1em 0; font-weight: 400; font-size: 1rem; line-height:1.45em; }
+footer { text-align: center; margin-top:1.5em; }
+footer p { font-size: 0.75rem; line-height: 1rem; }

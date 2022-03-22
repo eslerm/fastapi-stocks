@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>🛢️🏷🌅 oilprice.day | Daily Oil Prices</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="{{ url_for('static', path='/normalize.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', path='/d3.v6.js') }}"></script>
+  </head>
+  <body>
+      <header>
+        <h1><a href="#">🛢️🏷🌅</a></h1>
+        <h2>Daily Oil Prices</h2>
+      </header>
+      <main>
+      {% for c in crude %}
+	<p>
+          <strong>{{c.label}}</strong><br />
+	  country: {{c.country}}<br />
+	  last price: {{c.history[0].price}}
+	</p>
+	<div id="graph-{{c.label}}"></div>
+<script>
+
+const margin = {top: 10, right: 30, bottom: 30, left: 60},
+    width = 700 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+const svg_{{c.label}} = d3.select("#graph-{{c.label}}")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+d3.json("/crude/{{c.label}}/history").then(function(data) {
+  data.forEach(function(d) {
+    //d.date = d3.timeParse("%Y-%m-%dT:00:00")(d.date);
+    d.date = d3.timeParse("%Y-%m-%dT00:00:00")(d.date);
+    d.price = +d.price;
+    return d;
+  });
+
+  const x = d3.scaleTime()
+    .domain(d3.extent(data, function(d) { return d.date; }))
+    .range([ 0, width ]);
+  svg_{{c.label}}.append("g")
+    .attr("transform", `translate(0, ${height})`)
+    .call(d3.axisBottom(x));
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, function(d) { return +d.price; })])
+    .range([ height, 0 ]);
+  svg_{{c.label}}.append("g")
+    .call(d3.axisLeft(y));
+
+  svg_{{c.label}}.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+      .x(function(d) { return x(d.date) })
+      .y(function(d) { return y(d.price) })
+      )
+
+})
+</script>
+      {% endfor %}
+
+    </main>
+    <footer>
+      <p>
+        Powered by <a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI</a>, <a href="https://reactjs.org/" target="_blank">React.js</a>, <a href="https://d3js.org/" target="_blank">D3.js</a> and <a href="https://aws.amazon.com/" target="_blank">AWS</a><br />
+        Built, operated, and designed by <a href="https://markesler.com" target="_blank" title="Mark Esler">Mark Esler</a>
+      </p>
+    </footer>
+  </body>
+</html>
