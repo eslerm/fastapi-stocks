@@ -1,33 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>🛢️🏷🌅 oilprice.day | Daily Oil Prices</title>
+    <title>Oil Price Day | oilprice.day</title>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="icon" href="{{ url_for('static', path='/favicon.ico') }}" sizes="any">
+    <link rel="icon" href="{{ url_for('static', path='/logo.svg') }}" type="image/svg+xml">
     <link href="{{ url_for('static', path='/normalize.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', path='/d3.v6.js') }}"></script>
   </head>
   <body>
       <header>
-        <h1><a href="#">🛢️🏷🌅</a></h1>
+        <a href="#">
+          <h1>Oil Price Day</h1>
+	  <img src="{{ url_for('static', path='/logo.svg') }}" />
+	</a>
         <h2>Daily Oil Prices</h2>
       </header>
       <main>
-      {% for c in crude %}
-	<p>
-          <strong>{{c.label}}</strong><br />
-	  country: {{c.country}}<br />
-	  last price: {{c.history[0].price}}
-	</p>
-	<div id="graph-{{c.label}}"></div>
+        <div id="controls">
+          <form action="/action_page.php">
+            <select name="cars" id="cars">
+              {% for c in crude %}
+              <option value="{{c.label}}">{{c.label}}</option>
+              {% endfor %}
+            </select>
+          </form>
+	  <p>
+	    country: United States <br />
+	    last price: <code>110.37</code>
+	  </p>
+	</div>
+        {% for c in crude %}
+	<div id="graph"></div>
 <script>
 
-const margin = {top: 10, right: 30, bottom: 30, left: 60},
+const margin = {top: 0, right: 30, bottom: 30, left: 0},
     width = 700 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 
-const svg_{{c.label}} = d3.select("#graph-{{c.label}}")
+const svg_{{c.label}} = d3.select("#graph")
   .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -53,12 +66,13 @@ d3.json("/crude/{{c.label}}/history").then(function(data) {
     .domain([0, d3.max(data, function(d) { return +d.price; })])
     .range([ height, 0 ]);
   svg_{{c.label}}.append("g")
-    .call(d3.axisLeft(y));
+    .attr("transform", `translate(${width}, 0)`)
+    .call(d3.axisRight(y));
 
   svg_{{c.label}}.append("path")
     .datum(data)
     .attr("fill", "none")
-    .attr("stroke", "steelblue")
+    .attr("stroke", "#3b88c3")
     .attr("stroke-width", 1.5)
     .attr("d", d3.line()
       .x(function(d) { return x(d.date) })
