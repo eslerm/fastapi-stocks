@@ -1,5 +1,5 @@
 #!/bin/sh
 
-export APP=${APP-app.main:app}
+export APP=${APP-backend.main:backend}
 
 exec python -m uvicorn --reload "$APP"

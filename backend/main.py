@@ -5,17 +5,17 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional, Any
 from pathlib import Path
 
-from app.schemas import Crude, History
-from app.data import CRUDE
+from backend.schemas import Crude, History
+from backend.data import CRUDE
 
 
 BASE_PATH = Path(__file__).resolve().parent
 TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 
 
-app = FastAPI(title="Oil Price Day")
+backend = FastAPI(title="Oil Price Day")
 
-app.mount("/static", StaticFiles(directory=(BASE_PATH / "templates/static")), name="static")
+backend.mount("/static", StaticFiles(directory=(BASE_PATH / "templates/static")), name="static")
 
 api_router = APIRouter()
 
@@ -51,4 +51,4 @@ def fetch_crude(*, crude_label: str) -> Any:
     return result
 
 
-app.include_router(api_router)
+backend.include_router(api_router)
