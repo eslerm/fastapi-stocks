@@ -1,6 +1,5 @@
 from fastapi import FastAPI, APIRouter, Query, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from typing import Optional, Any
 from pathlib import Path
@@ -9,24 +8,14 @@ from backend.schemas import Crude, History
 from backend.data import CRUDE
 
 
-BASE_PATH = Path(__file__).resolve().parent
-TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
-
-
 backend = FastAPI(title="Oil Price Day")
-
-backend.mount("/static", StaticFiles(directory=(BASE_PATH / "templates/static")), name="static")
 
 api_router = APIRouter()
 
 
-@api_router.get("/", status_code=200)
+@api_router.get("/", status_code=200, response_model=list[Crude])
 def root(request: Request) -> dict:
-    return TEMPLATES.TemplateResponse(
-        "index.html",
-        {"request": request, "crude": CRUDE},
-    )
-
+    return CRUDE
 
 @api_router.get("/crude/{crude_label}", status_code=200, response_model=Crude)
 def fetch_crude(*, crude_label: str) -> Any:
