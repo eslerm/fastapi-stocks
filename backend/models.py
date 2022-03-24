@@ -3,14 +3,14 @@ from pydantic import BaseModel
 # from typing import Sequence, List
 
 
-class Future(BaseModel):
+class Symbol(BaseModel):
     id: int
     symbol: str
     name: str
     exchange: str
 
 
-class FutureRequest(BaseModel):
+class SymbolRequest(BaseModel):
     symbol: str
 
 

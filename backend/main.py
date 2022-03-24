@@ -12,20 +12,23 @@ from typing import List
 # from typing import Any, Optional
 
 from backend.database import Base, engine, get_db, SessionLocal
-from backend.schemas import FutureSchema, HistorySchema
-from backend.models import Future, FutureRequest, History
+from backend.schemas import SymbolSchema, HistorySchema
+from backend.models import Symbol, SymbolRequest, History
 
 
-def yf_create_future(id: int):
+def yf_create_symbol(id: int):
     db = SessionLocal()
-    future = db.query(FutureSchema).filter(FutureSchema.id == id).first()
-    yd = yf.Ticker(future.symbol)
-    future.name = yd.info["shortName"]
-    future.exchange = yd.info["exchange"]
-    df = yd.history(period="max")
+    symbol = db.query(SymbolSchema).filter(SymbolSchema.id == id).first()
+    yd = yf.Ticker(symbol.symbol)
+    symbol.name = yd.info["shortName"]
+    symbol.exchange = yd.info["exchange"]
+    db.add(symbol)
+    db.commit()
+    df = yd.history(period="1wk")
+    #df = yd.history(period="max")
     for index, row in df.iterrows():
         h = HistorySchema()
-        h.future_id = future.id
+        h.symbol_id = symbol.id
         h.date = index.date()
         h.open = round(float(row["Open"]), 2)
         h.high = round(float(row["High"]), 2)
@@ -34,8 +37,6 @@ def yf_create_future(id: int):
         h.volume = int(row["Volume"])
         db.add(h)
         db.commit()
-    db.add(future)
-    db.commit()
 
 
 app = FastAPI()
@@ -43,34 +44,32 @@ router = APIRouter()
 Base.metadata.create_all(bind=engine)
 
 
-@router.get("/futures", status_code=200, response_model=list[Future])
-async def fetch_future():
+@router.get("/symbols", status_code=200, response_model=list[Symbol])
+async def fetch_symbol():
     db = SessionLocal()
-    all_futures = db.query(FutureSchema)
+    all_symbols = db.query(SymbolSchema)
     res = [
         {"id": f.id, "symbol": f.symbol, "name": f.name, "exchange": f.exchange}
-        for f in all_futures
+        for f in all_symbols
     ]
     return res
 
 
-@router.post("/create_future")
-async def create_future(
-    future_request: FutureRequest,
+@router.post("/create_symbol")
+async def create_symbol(
+    symbol_request: SymbolRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     """
-    add future to database
+    add symbol to database
     """
-    future = FutureSchema()
-    future.symbol = future_request.symbol
-
-    db.add(future)
+    symbol = SymbolSchema()
+    symbol.symbol = symbol_request.symbol
+    db.add(symbol)
     db.commit()
-
-    background_tasks.add_task(yf_create_future, future.id)
-    return {"code": f"added {future.symbol}"}
+    background_tasks.add_task(yf_create_symbol, symbol.id)
+    return {"code": f"added {symbol.symbol}"}
 
 
 app.include_router(router)

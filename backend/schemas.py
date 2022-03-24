@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from backend.database import Base
 
 
-class FutureSchema(Base):
-    __tablename__ = "futures"
+class SymbolSchema(Base):
+    __tablename__ = "symbols"
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String, unique=True, index=True)
     name = Column(String)
@@ -15,7 +15,7 @@ class FutureSchema(Base):
 class HistorySchema(Base):
     __tablename__ = "history"
     id = Column(Integer, primary_key=True, index=True)
-    future_id = Column(Integer, ForeignKey("futures.id"))
+    symbol_id = Column(Integer, ForeignKey("symbols.id"))
     date = Column(Date)
     open = Column(Numeric(10, 2))
     high = Column(Numeric(10, 2))
