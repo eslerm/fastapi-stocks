@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import date
 
 # from typing import Sequence, List
 
@@ -15,4 +16,5 @@ class SymbolRequest(BaseModel):
 
 
 class History(BaseModel):
-    id: int
+    date: date
+    price: float
