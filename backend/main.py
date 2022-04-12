@@ -4,6 +4,7 @@ from fastapi import (
     Depends,
     FastAPI,
 )
+from fastapi.middleware.cors import CORSMiddleware
 import sqlalchemy
 from sqlalchemy.orm import Session
 import yfinance as yf
@@ -11,7 +12,7 @@ from typing import List
 # from typing import Any, Optional
 from backend.database import Base, engine, get_db, SessionLocal
 from backend.schemas import SymbolSchema, HistorySchema
-from backend.models import Symbol, SymbolRequest, History
+from backend.models import History, Info, Symbol, SymbolRequest
 
 
 def yf_create_symbol(id: int):
@@ -22,8 +23,8 @@ def yf_create_symbol(id: int):
     symbol.exchange = yd.info["exchange"]
     db.add(symbol)
     db.commit()
-    #df = yd.history(period="max")
-    df = yd.history(period="1wk")
+    df = yd.history(period="max")
+    #df = yd.history(period="1wk")
     for index, row in df.iterrows():
         h = HistorySchema()
         h.symbol_id = symbol.id
@@ -35,6 +36,7 @@ def yf_create_symbol(id: int):
         h.volume = int(row["Volume"])
         db.add(h)
         db.commit()
+    print(f"{symbol.symbol} added")
 
 
 app = FastAPI()
@@ -42,12 +44,27 @@ router = APIRouter()
 Base.metadata.create_all(bind=engine)
 
 
+origins = [
+    "http://localhost:3000",
+    "localhost:3000"
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+
 @router.get("/symbols", status_code=200, response_model=list[Symbol])
 async def fetch_symbols():
     db = SessionLocal()
     all_symbols = db.query(SymbolSchema)
     res = [
-        {"id": f.id, "symbol": f.symbol, "name": f.name, "exchange": f.exchange}
+        {"value": f.symbol, "label": f.name}
         for f in all_symbols
     ]
     return res
@@ -61,6 +78,12 @@ async def create_symbol(
 ):
     """
     add symbol to database
+
+    TODO: add error handling
+          e.g., stock doesn't exist/cannot be updated
+          currently a bad symbol will break api
+          what do repeat symbols do?
+          force ALPHA
     """
     symbol = SymbolSchema()
     symbol.symbol = symbol_request.symbol
@@ -70,14 +93,14 @@ async def create_symbol(
     return {"code": f"added {symbol.symbol}"}
 
 
-@router.get("/info/{symbol}", status_code=200, response_model=Symbol)
+@router.get("/info/{symbol}", status_code=200, response_model=Info)
 async def fetch_symbol(symbol: str):
     """
     get symbol info
     """
     db = SessionLocal()
     s = db.query(SymbolSchema).filter(SymbolSchema.symbol == symbol).first()
-    res = {"id": s.id, "symbol": s.symbol, "name": s.name, "exchange": s.exchange}
+    res = {"symbol": s.symbol, "name": s.name}
     return res
 
 

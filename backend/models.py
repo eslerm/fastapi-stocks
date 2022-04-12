@@ -5,11 +5,16 @@ from datetime import date
 
 
 class Symbol(BaseModel):
-    id: int
+    #id: int
+    #symbol: str
+    value: str
+    #name: str
+    label: str
+    #exchange: str
+
+class Info(BaseModel):
     symbol: str
     name: str
-    exchange: str
-
 
 class SymbolRequest(BaseModel):
     symbol: str
