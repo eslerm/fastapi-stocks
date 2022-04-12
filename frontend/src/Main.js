@@ -12,7 +12,6 @@ import React, { Component, useState, useEffect} from 'react';
 import axios from 'axios';
 import Graph from './Graph';
 import { fetch } from './hooks/fetch';
-import { useSymbol } from './hooks/useSymbol';
 import Select from 'react-select'
 //import AsyncSelect from 'react-select/async';
 
